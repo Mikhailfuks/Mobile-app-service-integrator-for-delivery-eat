@@ -1,0 +1,3256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEGAFOOD — доставка за 30 минут</title>
+    <style>
+        /* ========== СБРОС И ПЕРЕМЕННЫЕ ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        :root {
+            --primary: #ff6b6b;
+            --primary-dark: #ff5252;
+            --secondary: #4ecdc4;
+            --dark: #2d3436;
+            --light: #f8f9fa;
+            --gray: #868e96;
+            --success: #51cf66;
+            --warning: #fcc419;
+            --danger: #ff6b6b;
+            --balance: #4d4dff;
+            --premium: #ffd700;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .app-container {
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+            margin: 20px auto;
+            animation: slideUp 0.5s ease;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ========== ШАПКА ========== */
+        .header {
+            padding: 20px 20px 10px;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .location-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--dark);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 12px;
+            background: var(--light);
+            border-radius: 25px;
+            transition: all 0.3s;
+        }
+        .location:hover {
+            background: #e9ecef;
+        }
+        .location i { color: var(--primary); }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .header-icon:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        .current-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark);
+            background: var(--light);
+            padding: 8px 12px;
+            border-radius: 25px;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .search-bar {
+            background: var(--light);
+            padding: 12px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray);
+            margin-top: 10px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .search-bar:focus-within {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 5px 20px rgba(255,107,107,0.1);
+        }
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        /* ========== КОНТЕНТ (СКРОЛЛ) ========== */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ========== РЕГИСТРАЦИЯ / ПРОФИЛЬ ========== */
+        .auth-section {
+            margin: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            border-radius: 25px;
+            color: var(--dark);
+            box-shadow: 0 15px 30px rgba(168,237,234,0.3);
+        }
+        .auth-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid white;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .auth-form input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .auth-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .auth-logout {
+            background: var(--light);
+            color: var(--dark);
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .social-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .social-btn.google { color: #db4437; }
+        .social-btn.vk { color: #4a76a8; }
+        .phone-country {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 10px 20px;
+            padding: 20px;
+            border-radius: 25px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(102,126,234,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .profile-card.premium {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            box-shadow: 0 15px 30px rgba(247,151,30,0.4);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: var(--primary);
+        }
+        .profile-name h3 { font-size: 18px; margin-bottom: 3px; }
+        .profile-name p { font-size: 12px; opacity: 0.9; }
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .profile-stat {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 15px;
+        }
+        .profile-stat-label { font-size: 11px; opacity: 0.8; margin-bottom: 3px; }
+        .profile-stat-value { font-size: 16px; font-weight: bold; }
+        .premium-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .premium-badge.active { background: var(--premium); color: #333; }
+
+        /* ========== ИЗБРАННОЕ ========== */
+        .wishlist-section {
+            margin: 20px;
+            padding: 15px;
+            background: #fff0f0;
+            border-radius: 25px;
+        }
+        .wishlist-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .wishlist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .wishlist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .wishlist-item-icon { font-size: 32px; }
+        .wishlist-item-info { flex: 1; }
+        .wishlist-item-name { font-weight: 600; }
+        .wishlist-item-price { color: var(--primary); font-size: 14px; }
+        .wishlist-item-remove { color: var(--danger); cursor: pointer; font-size: 18px; padding: 5px; }
+
+        /* ========== ПРИВЯЗКА КАРТЫ ========== */
+        .card-section {
+            margin: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            border-radius: 25px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(116,235,213,0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .card-preview {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-preview::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.2) 0%, transparent 50%);
+        }
+        .card-chip {
+            width: 40px;
+            height: 30px;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .card-number {
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        .card-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .card-holder, .card-expiry { text-transform: uppercase; opacity: 0.9; }
+        .card-form {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+        .card-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .card-form input:focus { border-color: white; outline: none; }
+        .card-form-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .card-form-row input { flex: 1; }
+        .cvv-wrapper { position: relative; flex: 1; }
+        .cvv-wrapper input { width: 100%; padding-right: 40px; }
+        .cvv-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--gray);
+            font-size: 18px;
+            background: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .save-card-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .save-card-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        /* ========== ПРОМОКОДЫ ========== */
+        .promo-section {
+            margin: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 25px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(240,147,251,0.3);
+        }
+        .promo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .promo-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .promo-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .promo-input-group button {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .promo-active {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        .promo-active.active { display: block; }
+
+        /* ========== ПОПОЛНЕНИЕ БАЛАНСА ========== */
+        .balance-replenish {
+            margin: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 25px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(240,147,251,0.3);
+        }
+        .replenish-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .replenish-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .replenish-amount {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .replenish-amount:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+
+        /* ========== БОНУСНЫЕ ТОВАРЫ ========== */
+        .bonus-section {
+            margin: 20px 0;
+            background: linear-gradient(135deg, #f6b868, #ee6b2e);
+            border-radius: 25px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(246,184,104,0.3);
+        }
+        .bonus-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .bonus-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+        }
+        .bonus-item:hover { transform: translateY(-2px); background: rgba(255,255,255,0.3); }
+        .bonus-icon {
+            font-size: 28px;
+            width: 45px;
+            height: 45px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 22.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bonus-info { flex: 1; }
+        .bonus-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .bonus-price { font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 3px; }
+
+        /* ========== ОТЗЫВЫ ========== */
+        .reviews-section {
+            margin: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 25px;
+        }
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .reviews-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 5px 0 10px;
+            scrollbar-width: none;
+        }
+        .reviews-list::-webkit-scrollbar { display: none; }
+        .review-card {
+            min-width: 250px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .review-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        .review-info { flex: 1; }
+        .review-name { font-weight: 600; font-size: 14px; }
+        .review-rating { color: #ffd700; font-size: 12px; }
+        .review-text { font-size: 13px; color: var(--gray); margin-bottom: 10px; line-height: 1.4; }
+        .review-order { font-size: 11px; color: var(--primary); font-weight: 600; }
+
+        /* ========== КОЛЕСО УДАЧИ ========== */
+        .wheel-container {
+            margin: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 25px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(102,126,234,0.3);
+        }
+        .wheel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .wheel-header h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+        .wheel-timer {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .wheel-wrapper {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+            transition: transform 3s cubic-bezier(0.25, 0.1, 0.15, 1);
+        }
+        .wheel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            z-index: 10;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+            pointer-events: none;
+        }
+        .wheel-spin-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        .wheel-spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        .wheel-spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wheel-buy-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .wheel-prizes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        .prize-item { display: flex; align-items: center; gap: 5px; }
+
+        /* ========== ИСТОРИЯ ОПЕРАЦИЙ ========== */
+        .history-card {
+            background: white;
+            margin: 15px 20px;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .history-header h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+        .view-all { color: var(--primary); font-size: 12px; cursor: pointer; }
+        .history-list { display: flex; flex-direction: column; gap: 12px; }
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+        .history-item:hover { background: #f9f9f9; }
+        .history-item:last-child { border-bottom: none; }
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--success);
+        }
+        .history-details { flex: 1; }
+        .history-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .history-date { font-size: 11px; color: var(--gray); }
+        .history-amount { font-weight: 700; font-size: 16px; }
+        .history-amount.positive { color: var(--success); }
+        .history-amount.negative { color: var(--primary); }
+
+        /* ========== КЭШБЭК ========== */
+        .cashback-banner {
+            background: linear-gradient(135deg, var(--primary), #ff8e8e);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 15px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .cashback-left { display: flex; align-items: center; gap: 10px; }
+        .cashback-icon { font-size: 32px; }
+        .cashback-text { font-size: 14px; }
+        .cashback-text strong { font-size: 18px; }
+        .cashback-percent {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* ========== КАТЕГОРИИ ========== */
+        .categories-wrapper {
+            position: relative;
+            padding: 15px 0 5px;
+        }
+        .categories {
+            padding: 0 20px;
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            min-width: 60px;
+        }
+        .category-item:hover { transform: translateY(-3px); }
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--light);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .category-item.active .category-icon {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 10px 20px rgba(255,107,107,0.3);
+        }
+        .category-item span { font-size: 11px; color: var(--gray); font-weight: 500; }
+        .category-item.active span { color: var(--primary); font-weight: 600; }
+
+        /* ========== ТОВАРЫ ========== */
+        .products-section { margin: 20px 0; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-bottom: 15px;
+        }
+        .section-header h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .scroll-arrows { display: flex; gap: 10px; }
+        .scroll-arrow {
+            width: 30px;
+            height: 30px;
+            background: var(--light);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .scroll-arrow:hover { background: var(--primary); color: white; }
+        .products-horizontal {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 0 20px 10px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        .products-horizontal::-webkit-scrollbar { display: none; }
+        .product-card {
+            min-width: 280px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            cursor: pointer;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .product-wishlist {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--gray);
+            cursor: pointer;
+            z-index: 3;
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .product-wishlist.active { color: var(--primary); transform: scale(1.1); }
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: var(--light);
+            border-radius: 40px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .product-name { font-weight: 700; font-size: 18px; margin-bottom: 5px; color: var(--dark); }
+        .product-description { font-size: 13px; color: var(--gray); margin-bottom: 10px; }
+        .product-details { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+        .product-detail {
+            background: var(--light);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--gray);
+        }
+        .product-addons {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        .addons-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .addons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .addon-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        .addon-item:hover { background: var(--light); }
+        .addon-checkbox { width: 16px; height: 16px; accent-color: var(--primary); }
+        .addon-price { color: var(--primary); font-weight: 600; margin-left: auto; }
+        .product-footer { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .product-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product-price {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 20px;
+        }
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--light);
+            border-radius: 25px;
+            padding: 5px 10px;
+        }
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .quantity-btn:hover { background: var(--primary); color: white; }
+        .quantity-value { font-weight: 600; min-width: 30px; text-align: center; }
+        .product-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .product-add:hover { background: var(--primary-dark); transform: scale(1.02); }
+        .swipe-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .product-card:hover .swipe-hint { opacity: 1; }
+        .product-rating { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray); margin-top: 5px; }
+        .product-rating span { color: #ffd700; }
+
+        /* ========== ПОЛОСА ОТСЛЕЖИВАНИЯ ========== */
+        .order-tracking-bar {
+            background: white;
+            border-top: 2px solid var(--light);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        .order-tracking-bar.collapsed { padding: 10px 20px; }
+        .order-tracking-bar.collapsed .tracking-details p,
+        .order-tracking-bar.collapsed .tracking-status { display: none; }
+        .order-tracking-bar.collapsed .tracking-icon { width: 35px; height: 35px; font-size: 18px; }
+        .order-tracking-bar.delivered { background: var(--success); color: white; }
+        .tracking-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .tracking-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--success);
+            border-radius: 22.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .tracking-details h4 { font-size: 14px; margin-bottom: 2px; }
+        .tracking-details p { font-size: 12px; color: var(--gray); }
+        .tracking-status {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .tracking-status.delivered { background: white; color: var(--success); }
+        .tracking-collapse-btn {
+            margin-left: 10px;
+            width: 30px;
+            height: 30px;
+            background: var(--light);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .tracking-collapse-btn:hover { background: var(--primary); color: white; }
+
+        /* ========== СТРАНИЦА ОТСЛЕЖИВАНИЯ ========== */
+        .tracking-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+        .tracking-page.active { display: block; }
+        .tracking-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .tracking-header .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .tracking-header h2 { font-size: 20px; }
+        .tracking-content { padding: 20px; }
+        .tracking-map {
+            height: 200px;
+            background: #f0f2f5;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #e9ecef 25%, #f8f9fa 25%, #f8f9fa 50%, #e9ecef 50%, #e9ecef 75%, #f8f9fa 75%);
+            background-size: 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .courier-marker {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            animation: bounce 1s infinite;
+            top: 30%;
+            left: 40%;
+        }
+        .user-marker {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            bottom: 20%;
+            right: 20%;
+        }
+        @keyframes bounce {
+            0%,100%{ transform: rotate(-45deg) translateY(0); }
+            50%{ transform: rotate(-45deg) translateY(-10px); }
+        }
+        .tracking-info-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .tracking-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .tracking-row:last-child { border-bottom: none; }
+        .tracking-label { color: var(--gray); font-size: 14px; }
+        .tracking-value { font-weight: 600; font-size: 14px; }
+        .order-items {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .order-items-title { font-weight: 600; margin-bottom: 10px; font-size: 16px; }
+        .order-item-detail {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .order-item-detail:last-child { border-bottom: none; }
+        .order-item-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .order-item-info { flex: 1; }
+        .order-item-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .order-item-addons { font-size: 12px; color: var(--gray); margin-bottom: 2px; }
+        .order-item-price { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+        .chat-container {
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .chat-message.courier { background: var(--primary); color: white; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-message.user { background: #e9e9eb; color: black; margin-left: auto; border-bottom-right-radius: 4px; }
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
+        .chat-input-area button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 22.5px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .rating-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+        .rating-section.active { display: block; }
+        .rating-section h3 { margin-bottom: 10px; text-align: center; }
+        .rating-stars { display: flex; gap: 5px; justify-content: center; margin: 15px 0; }
+        .rating-star {
+            font-size: 30px;
+            cursor: pointer;
+            color: #ddd;
+        }
+        .rating-star.active, .rating-star:hover { color: #ffd700; transform: scale(1.1); }
+        .rating-section textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            margin: 10px 0;
+            resize: none;
+            height: 80px;
+        }
+        .submit-rating-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tracking-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .tracking-action-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .tracking-action-btn.primary { background: var(--primary); color: white; }
+        .tracking-action-btn.secondary { background: var(--light); color: var(--dark); }
+
+        /* ========== СТРАНИЦА ОПЛАТЫ ========== */
+        .payment-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+        .payment-page.active { display: block; }
+        .payment-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .payment-header .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--light);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .payment-header h2 { font-size: 20px; }
+        .payment-content { padding: 20px; }
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .order-item-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .order-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #ddd;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .cart-item-quantity { display: flex; align-items: center; gap: 8px; }
+        .cart-quantity-btn {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .payment-methods { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        .payment-method:hover { border-color: var(--primary); }
+        .payment-method.selected { border-color: var(--primary); background: rgba(255,107,107,0.05); }
+        .payment-method-icon {
+            font-size: 24px;
+            width: 45px;
+            height: 45px;
+            background: var(--light);
+            border-radius: 22.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .payment-method-info { flex: 1; }
+        .payment-method-name { font-weight: 600; margin-bottom: 2px; }
+        .payment-method-desc { font-size: 11px; color: var(--gray); }
+
+        /* НАСТРОЙКИ ДОСТАВКИ (ПРОЦЕНТЫ) */
+        .delivery-options {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        .delivery-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        .delivery-option:hover { background: #e9ecef; }
+        .delivery-option.selected { border-color: var(--primary); background: rgba(255,107,107,0.05); }
+        .delivery-option input[type="radio"] { accent-color: var(--primary); }
+        .delivery-price { margin-left: auto; font-weight: 600; color: var(--primary); }
+
+        /* ЧАЕВЫЕ */
+        .tip-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .tip-option {
+            background: var(--light);
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .tip-option.selected { border-color: var(--primary); background: rgba(255,107,107,0.1); }
+        .tip-custom { flex: 1; padding: 10px; border: 2px solid #f0f0f0; border-radius: 25px; font-size: 14px; }
+
+        .pay-button {
+            background: linear-gradient(135deg, var(--primary), #ff8e8e);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* ========== АДМИН ПАНЕЛЬ ========== */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2500;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .admin-panel.active { display: block; }
+        .admin-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .admin-header .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--light);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .admin-stats {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .admin-stat {
+            text-align: center;
+        }
+        .admin-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .admin-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .admin-order-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .admin-order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .admin-order-status {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* ========== МОДАЛКИ, ТОСТЫ ========== */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .toast {
+            background: var(--dark);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 25px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .toast.success { background: var(--success); }
+        .toast.warning { background: var(--warning); color: var(--dark); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+        .toast-icon { font-size: 18px; }
+        .toast-close { margin-left: auto; cursor: pointer; opacity: 0.7; }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            border-radius: 30px;
+            padding: 20px;
+            max-width: 340px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 { font-size: 18px; }
+        .modal-close {
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        .modal-close:hover { color: var(--danger); transform: rotate(90deg); }
+        .address-map {
+            width: 100%;
+            height: 150px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .address-map iframe { width: 100%; height: 100%; border: 0; }
+
+        .profile-edit-form { display: flex; flex-direction: column; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; color: var(--gray); font-weight: 500; }
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); outline: none; }
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .form-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .form-actions .save-btn { background: var(--primary); color: white; }
+        .form-actions .cancel-btn { background: var(--light); color: var(--dark); }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px;
+            background: white;
+            border-top: 1px solid var(--light);
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--gray);
+            font-size: 11px;
+            cursor: pointer;
+            position: relative;
+        }
+        .nav-item:hover { color: var(--primary); transform: translateY(-2px); }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 20px; margin-bottom: 3px; }
+        .nav-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 8px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        @media (max-width:400px) {
+            .app-container { border-radius:0; margin:0; height:100vh; }
+            body { padding:0; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container" id="app">
+    <!-- ШАПКА -->
+    <div class="header">
+        <div class="location-bar">
+            <div class="location" id="locationBtn">
+                <i>📍</i> <span id="currentAddress">Москва, Тверская 15</span> <i>▼</i>
+            </div>
+            <div class="header-actions">
+                <div class="current-time" id="currentTime">00:00</div>
+                <div class="header-icon" id="docBtn"><i>📘</i></div>
+                <div class="header-icon" id="adminToggleBtn"><i>🔧</i></div>
+                <div class="header-icon" id="notificationsBtn"><i>🔔</i><span class="notification-badge" id="notificationBadge">2</span></div>
+                <div class="header-icon" id="apkDownloadBtn"><i>📲</i></div>
+            </div>
+        </div>
+        <div class="search-bar" id="searchBar">
+            <i>🔍</i>
+            <input type="text" placeholder="Поиск товаров..." id="searchInput">
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ (СКРОЛЛ) -->
+    <div class="scrollable-content" id="scrollableContent">
+
+        <!-- БЛОК РЕГИСТРАЦИИ -->
+        <div class="auth-section" id="authSection">
+            <div class="auth-header"><i>📱</i><span id="authTitle">Вход / Регистрация</span></div>
+            <div class="auth-form" id="authForm">
+                <input type="text" id="authSurname" placeholder="Фамилия" value="Иванов">
+                <input type="text" id="authName" placeholder="Имя" value="Иван">
+                <input type="text" id="authPatronymic" placeholder="Отчество" value="Иванович">
+                <input type="tel" id="authPhone" placeholder="Номер телефона" value="+79041234567" oninput="detectCountryByPhone(this.value)">
+                <div class="phone-country" id="phoneCountry">Россия</div>
+                <input type="password" id="authPassword" placeholder="Пароль">
+                <button class="auth-btn" onclick="registerUser()">Зарегистрироваться / Войти</button>
+                <div class="social-login">
+                    <div class="social-btn google" onclick="socialLogin('google')"><i>G</i> Google</div>
+                    <div class="social-btn vk" onclick="socialLogin('vk')"><i>VK</i> VK</div>
+                </div>
+                <button class="auth-logout" id="logoutBtn" onclick="logoutUser()" style="display:none;">Выйти</button>
+            </div>
+        </div>
+
+        <!-- КАРТОЧКА ПРОФИЛЯ -->
+        <div class="profile-card" id="profileCard" onclick="showProfileEditModal()">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <div class="profile-name">
+                    <h3 id="profileName">Гость</h3>
+                    <p id="profileEmail">не указан</p>
+                    <p id="profilePhone">+7 (000) 000-00-00</p>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat"><div class="profile-stat-label">Баланс</div><div class="profile-stat-value" id="profileBalance">21 630 ₽</div></div>
+                <div class="profile-stat"><div class="profile-stat-label">Бонусы</div><div class="profile-stat-value" id="profileBonus">3 210</div></div>
+            </div>
+            <div class="premium-badge" id="premiumBadge">⭐ Premium не активен</div>
+            <button class="auth-btn" style="margin-top:10px;" onclick="buyPremium(event)">✨ Купить Premium за 500₽</button>
+        </div>
+
+        <!-- ИЗБРАННОЕ -->
+        <div class="wishlist-section" id="wishlistSection">
+            <div class="wishlist-header"><i>❤️</i><span>Избранное</span></div>
+            <div class="wishlist-items" id="wishlistItems"></div>
+        </div>
+
+        <!-- ПРИВЯЗКА КАРТЫ -->
+        <div class="card-section">
+            <div class="card-header"><i>💳</i><span>Привязать карту</span></div>
+            <div class="card-preview" id="cardPreview">
+                <div class="card-chip"></div>
+                <div class="card-number" id="cardNumberDisplay">**** **** **** ****</div>
+                <div class="card-details"><div class="card-holder" id="cardHolderDisplay">ИМЯ ВЛАДЕЛЬЦА</div><div class="card-expiry" id="cardExpiryDisplay">**/**</div></div>
+            </div>
+            <div class="card-form">
+                <input type="text" id="cardNumber" placeholder="Номер карты" maxlength="19" oninput="formatCardNumber(this)">
+                <div class="card-form-row">
+                    <input type="text" id="cardExpiry" placeholder="ММ/ГГ" maxlength="5" oninput="formatCardExpiry(this)">
+                    <div class="cvv-wrapper">
+                        <input type="password" id="cardCvv" placeholder="CVV" maxlength="3" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g,'')">
+                        <span class="cvv-toggle" onclick="toggleCvv()">👁️</span>
+                    </div>
+                </div>
+                <input type="text" id="cardHolder" placeholder="Имя владельца (латиницей)">
+                <button class="save-card-btn" onclick="saveCard()">Сохранить карту</button>
+            </div>
+        </div>
+
+        <!-- ПРОМОКОДЫ -->
+        <div class="promo-section">
+            <div class="promo-header"><i>🏷️</i><span>Промокоды и скидки</span></div>
+            <div class="promo-input-group">
+                <input type="text" id="promoInput" placeholder="Введите промокод">
+                <button onclick="applyPromoCode()">Активировать</button>
+            </div>
+            <div class="promo-active" id="promoActive"><span id="promoText"></span></div>
+        </div>
+
+        <!-- ПОПОЛНЕНИЕ БАЛАНСА -->
+        <div class="balance-replenish">
+            <div class="replenish-header"><i>💰</i><span>Пополнить баланс</span></div>
+            <div class="replenish-amounts">
+                <div class="replenish-amount" onclick="replenishBalance(500)">500 ₽</div>
+                <div class="replenish-amount" onclick="replenishBalance(1000)">1000 ₽</div>
+                <div class="replenish-amount" onclick="replenishBalance(2000)">2000 ₽</div>
+            </div>
+            <div class="replenish-amounts">
+                <div class="replenish-amount" onclick="replenishBalance(5000)">5000 ₽</div>
+                <div class="replenish-amount" onclick="replenishBalance(10000)">10000 ₽</div>
+                <div class="replenish-amount" onclick="replenishBalance(20000)">20000 ₽</div>
+            </div>
+        </div>
+
+        <!-- БОНУСНЫЕ ТОВАРЫ -->
+        <div class="bonus-section">
+            <div class="bonus-header"><i>🎁</i><span>Товары за бонусы</span></div>
+            <div class="bonus-grid" id="bonusProducts"></div>
+        </div>
+
+        <!-- ОТЗЫВЫ -->
+        <div class="reviews-section">
+            <div class="reviews-header"><i>⭐</i><span>Отзывы наших клиентов</span></div>
+            <div class="reviews-list" id="reviewsList"></div>
+        </div>
+
+        <!-- КОЛЕСО УДАЧИ -->
+        <div class="wheel-container">
+            <div class="wheel-header">
+                <h3><i>🎡</i> Колесо удачи</h3>
+                <div class="wheel-timer" id="wheelTimer">24:00:00</div>
+            </div>
+            <div class="wheel-wrapper">
+                <div class="wheel" id="wheel" onclick="spinWheel()">
+                    <svg viewBox="0 0 100 100"><g class="wheel-segments"><path d="M50,50 L50,0 A50,50 0 0,1 85.36,14.64 L50,50" fill="#ff6b6b"/><path d="M50,50 L85.36,14.64 A50,50 0 0,1 100,50 L50,50" fill="#4ecdc4"/><path d="M50,50 L100,50 A50,50 0 0,1 85.36,85.36 L50,50" fill="#ffd93d"/><path d="M50,50 L85.36,85.36 A50,50 0 0,1 50,100 L50,50" fill="#a8e6cf"/><path d="M50,50 L50,100 A50,50 0 0,1 14.64,85.36 L50,50" fill="#ffb347"/><path d="M50,50 L14.64,85.36 A50,50 0 0,1 0,50 L50,50" fill="#ff6b6b"/><path d="M50,50 L0,50 A50,50 0 0,1 14.64,14.64 L50,50" fill="#4ecdc4"/><path d="M50,50 L14.64,14.64 A50,50 0 0,1 50,0 L50,50" fill="#ffd93d"/></g></svg>
+                </div>
+                <div class="wheel-pointer">▼</div>
+            </div>
+            <button class="wheel-spin-btn" id="spinBtn" onclick="spinWheel()">Крутить (1 раз в день)</button>
+            <button class="wheel-buy-btn" id="buySpinBtn" onclick="buySpin()">💰 Купить ещё spin за 50₽</button>
+            <div class="wheel-prizes"><span class="prize-item"><span style="color:#ff6b6b;">●</span>500</span><span><span style="color:#4ecdc4;">●</span>300</span><span><span style="color:#ffd93d;">●</span>200</span><span><span style="color:#a8e6cf;">●</span>100</span></div>
+        </div>
+
+        <!-- ИСТОРИЯ ОПЕРАЦИЙ -->
+        <div class="history-card" id="historyCard">
+            <div class="history-header"><h3><i>📊</i> История операций</h3><span class="view-all" onclick="showFullHistory()">Все →</span></div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <!-- КЭШБЭК (5% по умолчанию) -->
+        <div class="cashback-banner" onclick="activateCashback()">
+            <div class="cashback-left"><span class="cashback-icon">🔄</span><div class="cashback-text"><div>Кэшбэк на всё</div><strong>до <span id="cashbackPercent">5</span>% баллами</strong></div></div>
+            <div class="cashback-percent" id="cashbackPercentDisplay">5%</div>
+        </div>
+
+        <!-- КАТЕГОРИИ -->
+        <div class="categories-wrapper">
+            <div class="categories" id="categories">
+                <div class="category-item active" data-category="all"><div class="category-icon">🍽️</div><span>Все</span></div>
+                <div class="category-item" data-category="burger"><div class="category-icon">🍔</div><span>Бургеры</span></div>
+                <div class="category-item" data-category="pizza"><div class="category-icon">🍕</div><span>Пицца</span></div>
+                <div class="category-item" data-category="sushi"><div class="category-icon">🍣</div><span>Суши</span></div>
+                <div class="category-item" data-category="salad"><div class="category-icon">🥗</div><span>Салаты</span></div>
+                <div class="category-item" data-category="drink"><div class="category-icon">🥤</div><span>Напитки</span></div>
+            </div>
+        </div>
+
+        <!-- ПОПУЛЯРНЫЕ ТОВАРЫ -->
+        <div class="products-section">
+            <div class="section-header"><h3><i>🔥</i> Популярные товары</h3><div class="scroll-arrows"><div class="scroll-arrow" onclick="scrollProducts('left','popular')">←</div><div class="scroll-arrow" onclick="scrollProducts('right','popular')">→</div></div></div>
+            <div class="products-horizontal" id="popularProducts"></div>
+        </div>
+
+        <!-- РЕКОМЕНДУЕМ -->
+        <div class="products-section">
+            <div class="section-header"><h3><i>⭐</i> Рекомендуем</h3><div class="scroll-arrows"><div class="scroll-arrow" onclick="scrollProducts('left','recommended')">←</div><div class="scroll-arrow" onclick="scrollProducts('right','recommended')">→</div></div></div>
+            <div class="products-horizontal" id="recommendedProducts"></div>
+        </div>
+    </div>
+
+    <!-- НИЖНЯЯ ПАНЕЛЬ ЗАКАЗА -->
+    <div class="order-tracking-bar" id="orderTrackingBar" onclick="showTrackingPage()">
+        <div class="tracking-info">
+            <div class="tracking-icon">🚚</div>
+            <div class="tracking-details">
+                <h4>Заказ #6034</h4>
+                <p id="trackingBarTime">Прибудет через 60 мин</p>
+            </div>
+            <span class="courier-mood" id="courierMood">😐</span>
+        </div>
+        <div class="tracking-status" id="trackingStatus">В пути</div>
+        <div class="tracking-collapse-btn" onclick="toggleTrackingBar(event)">▼</div>
+    </div>
+
+    <!-- НИЖНЕЕ МЕНЮ -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-nav="home" onclick="navigateTo('home')"><i>🏠</i><span>Главная</span></div>
+        <div class="nav-item" data-nav="search" onclick="navigateTo('search')"><i>🔍</i><span>Поиск</span></div>
+        <div class="nav-item" data-nav="cart" onclick="navigateTo('cart')"><i>🛒</i><span>Корзина</span><span class="nav-badge" id="cartBadge">0</span></div>
+        <div class="nav-item" data-nav="orders" onclick="showOrdersHistory()"><i>📦</i><span>Заказы</span><span class="nav-badge" id="ordersBadge">0</span></div>
+        <div class="nav-item" data-nav="profile" onclick="navigateTo('profile')"><i>👤</i><span>Профиль</span></div>
+    </div>
+</div>
+
+<!-- СТРАНИЦА ОПЛАТЫ -->
+<div class="payment-page" id="paymentPage">
+    <div class="payment-header"><div class="back-btn" onclick="closePaymentPage()">←</div><h2>Оплата заказа</h2></div>
+    <div class="payment-content">
+        <div class="order-summary" id="orderSummary"></div>
+
+        <!-- АДРЕС ДОСТАВКИ -->
+        <h3 style="margin-bottom:10px">📍 Адрес доставки</h3>
+        <div style="background:#f8f9fa; border-radius:15px; padding:15px; margin-bottom:20px;">
+            <div class="form-group"><label>Улица, дом</label><input type="text" id="deliveryStreet" value="Тверская 15" placeholder="ул. Примерная, д. 1"></div>
+            <div style="display:flex; gap:10px;"><div class="form-group" style="flex:1;"><label>Квартира</label><input type="text" id="deliveryApartment" placeholder="42"></div><div class="form-group" style="flex:1;"><label>Подъезд</label><input type="text" id="deliveryEntrance" placeholder="2"></div></div>
+            <div style="display:flex; gap:10px;"><div class="form-group" style="flex:1;"><label>Этаж</label><input type="text" id="deliveryFloor" placeholder="5"></div><div class="form-group" style="flex:1;"><label>Домофон</label><input type="text" id="deliveryCode" placeholder="12#"></div></div>
+        </div>
+
+        <!-- ЧАЕВЫЕ -->
+        <h3 style="margin-bottom:10px">💸 Чаевые курьеру</h3>
+        <div class="tip-options">
+            <span class="tip-option" onclick="selectTip(50, this)">50 ₽</span>
+            <span class="tip-option" onclick="selectTip(100, this)">100 ₽</span>
+            <span class="tip-option" onclick="selectTip(200, this)">200 ₽</span>
+            <input type="number" id="tipCustom" class="tip-custom" placeholder="Своя сумма" min="0" oninput="selectTip(null, this)">
+        </div>
+
+        <!-- СПОСОБЫ ОПЛАТЫ -->
+        <h3 style="margin:15px 0">Способ оплаты</h3>
+        <div class="payment-methods">
+            <div class="payment-method selected" onclick="selectPaymentMethod('card', this)"><div class="payment-method-icon">💳</div><div class="payment-method-info"><div class="payment-method-name">Банковская карта</div><div class="payment-method-desc" id="cardDesc">**** **** **** 1234</div></div></div>
+            <div class="payment-method" onclick="selectPaymentMethod('balance', this)"><div class="payment-method-icon">💰</div><div class="payment-method-info"><div class="payment-method-name">Баланс</div><div class="payment-method-desc" id="balanceDesc">21 630 ₽ доступно</div></div></div>
+            <div class="payment-method" onclick="selectPaymentMethod('bonus', this)"><div class="payment-method-icon">🎁</div><div class="payment-method-info"><div class="payment-method-name">Бонусы</div><div class="payment-method-desc" id="bonusDesc">3 210 бонусов</div></div></div>
+        </div>
+
+        <!-- СКОРОСТЬ ДОСТАВКИ (ПРОЦЕНТЫ) -->
+        <div class="delivery-options">
+            <h4>Скорость доставки</h4>
+            <label class="delivery-option selected" id="deliveryStandard">
+                <input type="radio" name="delivery" value="standard" checked onchange="updateDeliveryCost()"> Обычная (60 мин) <span class="delivery-price">+0%</span>
+            </label>
+            <label class="delivery-option" id="deliveryMedium">
+                <input type="radio" name="delivery" value="medium" onchange="updateDeliveryCost()"> Ускоренная (40 мин) <span class="delivery-price">+15%</span>
+            </label>
+            <label class="delivery-option" id="deliveryExpress">
+                <input type="radio" name="delivery" value="express" onchange="updateDeliveryCost()"> Очень срочная (30 мин) <span class="delivery-price">+30%</span>
+            </label>
+        </div>
+
+        <button class="pay-button" onclick="processPayment()" id="payButton">Оплатить 0 ₽</button>
+    </div>
+</div>
+
+<!-- СТРАНИЦА ОТСЛЕЖИВАНИЯ -->
+<div class="tracking-page" id="trackingPage">
+    <div class="tracking-header"><div class="back-btn" onclick="closeTrackingPage()">←</div><h2>Отслеживание заказа</h2></div>
+    <div class="tracking-content">
+        <div class="tracking-map"><div class="map-placeholder"><div class="courier-marker" id="courierMarker">🚚</div><div class="user-marker">📍</div></div></div>
+        <div class="tracking-info-card">
+            <div class="tracking-row"><span class="tracking-label">Номер заказа:</span><span class="tracking-value" id="trackingOrderNumber">#6034</span></div>
+            <div class="tracking-row"><span class="tracking-label">Статус:</span><span class="tracking-value" id="trackingStatusText">В пути</span></div>
+            <div class="tracking-row"><span class="tracking-label">Время доставки:</span><span class="tracking-value" id="trackingTime">~60 мин</span></div>
+            <div class="tracking-row"><span class="tracking-label">Расстояние:</span><span class="tracking-value" id="trackingDistance">0.9 км</span></div>
+            <div class="tracking-row"><span class="tracking-label">Настроение курьера:</span><span class="tracking-value" id="trackingCourierMood">😐</span></div>
+        </div>
+        <div class="order-items" id="trackingOrderItems"><div class="order-items-title">Состав заказа</div></div>
+        <div class="chat-container"><div class="chat-messages" id="chatMessages"></div><div class="chat-input-area"><input type="text" id="chatInput" placeholder="Сообщение курьеру..."><button onclick="sendChatMessage()">➤</button></div></div>
+        <div class="rating-section" id="ratingSection"><h3>Оцените доставку</h3><div class="rating-stars" id="ratingStars"><span class="rating-star" onclick="setRating(1)">★</span><span class="rating-star" onclick="setRating(2)">★</span><span class="rating-star" onclick="setRating(3)">★</span><span class="rating-star" onclick="setRating(4)">★</span><span class="rating-star" onclick="setRating(5)">★</span></div><textarea id="reviewText" placeholder="Ваш отзыв (необязательно)"></textarea><button class="submit-rating-btn" onclick="submitRating()">Отправить оценку</button></div>
+        <div class="tracking-actions"><button class="tracking-action-btn primary" onclick="trackOrder()">Отследить</button><button class="tracking-action-btn secondary" onclick="subscribeCourier()">Подписаться</button></div>
+    </div>
+</div>
+
+<!-- АДМИН ПАНЕЛЬ -->
+<div class="admin-panel" id="adminPanel">
+    <div class="admin-header"><div class="back-btn" onclick="toggleAdminMode()">←</div><h2>Админ-панель</h2></div>
+    <div class="admin-stats" id="adminStats">
+        <div class="admin-stat"><div class="admin-stat-value" id="totalItemsStat">0</div><div class="admin-stat-label">товаров заказано</div></div>
+        <div class="admin-stat"><div class="admin-stat-value" id="totalRevenueStat">0 ₽</div><div class="admin-stat-label">выручка</div></div>
+    </div>
+    <div id="adminOrdersList"></div>
+</div>
+
+<!-- КОНТЕЙНЕР ДЛЯ ТОСТОВ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+    let cart = [];
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    let notifications = [];
+    let notificationBadge = 2;
+    let orders = [];
+
+    let userData = {
+        surname: '',
+        name: '',
+        patronymic: '',
+        phone: '',
+        avatar: '👤',
+        password: ''
+    };
+
+    let cardData = {
+        number: '',
+        expiry: '',
+        holder: '',
+        lastFour: ''
+    };
+
+    let userBalance = 21630;
+    let userBonus = 3210;
+    let isPremium = false;
+
+    let activePromo = null;
+    const promoCodes = {
+        'WELCOME10': { discount: 10, type: 'percent' },
+        'BONUS50': { discount: 50, type: 'fixed' },
+        'CASHBACK20': { discount: 20, type: 'cashback' }
+    };
+
+    let cashbackRate = 5;
+    let cashbackBoost = false;
+
+    let wheelSpinsLeft = 1;
+    let wheelTimer = 86400;
+    let isSpinning = false;
+
+    let currentOrder = {
+        id: '#6034',
+        status: 'В пути',
+        timeLeft: 60,
+        displayTime: '60',
+        items: [],
+        courier: { name: 'Алексей', rating: 4.95, deliveries: 123, phone: '+7 (999) 123-45-67' },
+        delivered: false,
+        deliveryType: 'standard',
+        tip: 0,
+        address: { street: 'Тверская 15', apartment: '', entrance: '', floor: '', code: '' }
+    };
+
+    let transactionHistory = [
+        { type: 'Пополнение', amount: 5000, date: '10.03.2024', icon: '💰' },
+        { type: 'Заказ #6034', amount: -850, date: '09.03.2024', icon: '🍔' },
+        { type: 'Кэшбэк', amount: 85, date: '09.03.2024', icon: '✨' },
+        { type: 'Колесо удачи', amount: 500, date: '08.03.2024', icon: '🎡' }
+    ];
+
+    let customerReviews = [
+        { name: 'Анна', avatar: '👩', rating: 5, text: 'Очень быстрая доставка!', order: 'Двойной бургер' },
+        { name: 'Дмитрий', avatar: '👨', rating: 5, text: 'Лучшая доставка в городе.', order: 'Маргарита' },
+        { name: 'Елена', avatar: '👩', rating: 4, text: 'Все свежее, курьер вежливый.', order: 'Филадельфия' },
+        { name: 'Сергей', avatar: '👨', rating: 5, text: 'Цены приятные, бонусы копятся.', order: 'Цезарь' }
+    ];
+
+    // Расширенные товары с составом и пищевой ценностью
+    let products = [
+        { id: 1, name: 'Двойной бургер', basePrice: 450, rating: 4.9, reviews: 128, category: 'burger',
+          description: 'Сочный бургер с двумя котлетами, свежими овощами и соусом',
+          composition: 'Говяжьи котлеты 2 шт, булочка с кунжутом, салат айсберг, помидор, маринованный лук, сыр чеддер, соус барбекю',
+          nutritional: 'Б: 32г, Ж: 45г, У: 40г',
+          icon: '🍔', popular: true,
+          weight: '350г', calories: '850 ккал', cookingTime: '15 мин',
+          addons: [ { name: 'Сыр', price: 50, icon: '🧀' }, { name: 'Бекон', price: 80, icon: '🥓' } ] },
+        { id: 2, name: 'Маргарита', basePrice: 550, rating: 4.8, reviews: 95, category: 'pizza',
+          description: 'Классическая пицца с томатным соусом и моцареллой',
+          composition: 'Тесто на тонком корже, соус томатный, сыр моцарелла, базилик, оливковое масло',
+          nutritional: 'Б: 24г, Ж: 22г, У: 58г',
+          icon: '🍕', popular: true,
+          weight: '450г', calories: '920 ккал', cookingTime: '20 мин',
+          addons: [ { name: 'Пепперони', price: 100, icon: '🌶️' }, { name: 'Грибы', price: 70, icon: '🍄' } ] },
+        { id: 3, name: 'Филадельфия', basePrice: 650, rating: 4.9, reviews: 156, category: 'sushi',
+          description: 'Нежные роллы с лососем, сливочным сыром и огурцом',
+          composition: 'Рис, нори, лосось свежий, сливочный сыр, огурец, кунжут',
+          nutritional: 'Б: 18г, Ж: 12г, У: 48г',
+          icon: '🍣', popular: true,
+          weight: '280г', calories: '580 ккал', cookingTime: '12 мин',
+          addons: [ { name: 'Икра масаго', price: 90, icon: '🥚' }, { name: 'Угорь', price: 150, icon: '🐍' } ] },
+        { id: 4, name: 'Цезарь', basePrice: 350, rating: 4.7, reviews: 67, category: 'salad',
+          description: 'Салат с курицей, пармезаном, сухариками и соусом Цезарь',
+          composition: 'Куриное филе гриль, салат романо, пармезан, пшеничные гренки, соус Цезарь',
+          nutritional: 'Б: 28г, Ж: 18г, У: 15г',
+          icon: '🥗', popular: true,
+          weight: '320г', calories: '420 ккал', cookingTime: '10 мин',
+          addons: [ { name: 'Курица', price: 80, icon: '🍗' }, { name: 'Креветки', price: 150, icon: '🦐' } ] },
+        { id: 5, name: 'Coca-Cola', basePrice: 100, rating: 4.9, reviews: 456, category: 'drink',
+          description: '0.5 л, оригинальный вкус',
+          composition: 'Вода, сахар, краситель, ортофосфорная кислота, кофеин',
+          nutritional: 'Б: 0г, Ж: 0г, У: 42г',
+          icon: '🥤', popular: true,
+          weight: '500мл', calories: '210 ккал', cookingTime: '2 мин',
+          addons: [ { name: 'Лимон', price: 15, icon: '🍋' }, { name: 'Лайм', price: 15, icon: '🍈' } ] },
+        { id: 6, name: 'Пепперони', basePrice: 600, rating: 4.9, reviews: 203, category: 'pizza',
+          description: 'Острая пепперони с томатным соусом и сыром',
+          composition: 'Тесто, соус томатный, сыр моцарелла, пепперони, орегано',
+          nutritional: 'Б: 26г, Ж: 28г, У: 52г',
+          icon: '🍕', popular: false,
+          weight: '480г', calories: '980 ккал', cookingTime: '20 мин',
+          addons: [ { name: 'Двойная пепперони', price: 120, icon: '🌶️' }, { name: 'Халапеньо', price: 40, icon: '🌶️' } ] },
+        { id: 7, name: 'Суши-сет', basePrice: 1200, rating: 5.0, reviews: 89, category: 'sushi',
+          description: 'Ассорти из 24 штук: 8 Филадельфия, 8 Калифорния, 8 с угрём',
+          composition: 'Рис, нори, лосось, угорь, огурец, авокадо, икра тобико, кунжут',
+          nutritional: 'Б: 42г, Ж: 28г, У: 110г',
+          icon: '🍱', popular: false,
+          weight: '800г', calories: '1200 ккал', cookingTime: '25 мин',
+          addons: [ { name: 'Имбирь', price: 30, icon: '🫚' }, { name: 'Васаби', price: 20, icon: '🟢' } ] }
+    ];
+
+    let bonusProducts = [
+        { id: 101, name: 'Кофе американо', bonusPrice: 50, icon: '☕' },
+        { id: 102, name: 'Картошка фри', bonusPrice: 80, icon: '🍟' },
+        { id: 103, name: 'Шоколадный десерт', bonusPrice: 120, icon: '🍰' },
+        { id: 104, name: 'Чай с бергамотом', bonusPrice: 40, icon: '🫖' }
+    ];
+
+    let currentPaymentMethod = 'card';
+    let touchStartX = 0;
+    let cartModal = null;
+    let selectedTip = 0;
+    let currentRating = 0;
+
+    // Расширенные фразы курьера с возможностью отвечать на вопросы
+    let courierPhrases = {
+        greetings: [
+            "Здравствуйте! Через 5 минут буду у вас.",
+            "Добрый день! Ваш заказ уже в пути.",
+            "Приветствую! Осталось немного, скоро буду.",
+            "Здравствуйте! Выехал к вам, ждите."
+        ],
+        timeUpdates: [
+            "Уже подъезжаю, осталось 2 минуты.",
+            "Застрял в пробке, буду через 10 минут.",
+            "Пробок нет, лечу к вам!",
+            "Осталось 30 секунд, готовьтесь встречать!"
+        ],
+        delivery: [
+            "Ваш заказ уже у меня, скоро доставлю!",
+            "Приятного аппетита!",
+            "Оставьте, пожалуйста, отзыв о доставке.",
+            "Спасибо за заказ, всего доброго!"
+        ],
+        thanks: [
+            "Спасибо за чаевые! 😊",
+            "Очень приятно, спасибо!",
+            "Вы очень щедры, спасибо большое!",
+            "Благодарю, приятного аппетита!"
+        ],
+        questions: {
+            "где вы": ["Уже рядом, минут 5-7.", "Подъезжаю к вашему дому.", "Около метро, скоро буду."],
+            "сколько времени": ["Минут 10 максимум.", "Осталось совсем немного.", "Скоро, уже в пути."],
+            "опаздываете": ["Немного задержался в пробке, простите.", "Уже на месте, открывайте!", "Извините, сейчас буду."],
+            "домофон": ["Набираю, открывайте!", "Звоню в домофон.", "Жду ответа в домофон."],
+            "вкусно": ["Приятного аппетита! Надеюсь, понравится!", "Спасибо, стараемся!"]
+        },
+        default: [
+            "Понял, скоро буду!",
+            "Хорошо, уже в пути.",
+            "Договорились, ждите.",
+            "Отлично, сейчас прибуду."
+        ]
+    };
+
+    let chatMessages = [
+        { sender: 'courier', text: 'Здравствуйте! Через 30 минут буду у вас.' },
+        { sender: 'user', text: 'Хорошо, жду!' }
+    ];
+
+    // ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
+    function showToast(msg, type = 'info', dur = 3000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="toast-icon">${type==='success'?'✅':type==='error'?'❌':type==='warning'?'⚠️':'ℹ️'}</span><span>${msg}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), dur);
+    }
+
+    function showModal(title, content) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h3>${title}</h3><span class="modal-close" onclick="this.closest('.modal').remove()">&times;</span></div>${content}</div>`;
+        document.body.appendChild(modal);
+    }
+
+    function closeModal() {
+        document.querySelectorAll('.modal').forEach(m => m.remove());
+        cartModal = null;
+    }
+
+    // ==================== РЕГИСТРАЦИЯ ====================
+    function detectCountryByPhone(phone) {
+        let country = 'Россия';
+        if (phone.startsWith('+7')) country = 'Россия';
+        else if (phone.startsWith('+375')) country = 'Беларусь';
+        else if (phone.startsWith('+380')) country = 'Украина';
+        else if (phone.startsWith('+77')) country = 'Казахстан';
+        else if (phone.startsWith('+994')) country = 'Азербайджан';
+        document.getElementById('phoneCountry').textContent = country;
+    }
+
+    function registerUser() {
+        const surname = document.getElementById('authSurname').value.trim();
+        const name = document.getElementById('authName').value.trim();
+        const patronymic = document.getElementById('authPatronymic').value.trim();
+        const phone = document.getElementById('authPhone').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        if (!surname || !name || !phone || !password) {
+            showToast('❌ Заполните все поля, включая пароль', 'error');
+            return;
+        }
+        // Имитация сохранения на сервере
+        fetch('https://jsonplaceholder.typicode.com/posts', {
+            method: 'POST',
+            body: JSON.stringify({ surname, name, patronymic, phone, password }),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        }).then(() => showToast('✅ Данные отправлены на сервер (демо)', 'success')).catch(() => {});
+
+        userData = { surname, name, patronymic, phone, avatar: '👤', password };
+        updateProfileDisplay();
+        document.getElementById('authTitle').innerText = `Здравствуйте, ${name}!`;
+        document.getElementById('authForm').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
+        showToast('✅ Регистрация успешна', 'success');
+        localStorage.setItem('userData', JSON.stringify(userData));
+    }
+
+    function socialLogin(provider) {
+        let mockData = {};
+        if (provider === 'google') {
+            mockData = { surname: 'Гуглов', name: 'Гугл', patronymic: 'Гуглович', phone: '+79001234567', avatar: '🟢' };
+        } else if (provider === 'vk') {
+            mockData = { surname: 'Вконтактов', name: 'Вконтакт', patronymic: 'Вконтактович', phone: '+79119876543', avatar: '🔵' };
+        }
+        userData = { ...mockData, password: 'social' };
+        updateProfileDisplay();
+        document.getElementById('authTitle').innerText = `Здравствуйте, ${userData.name}!`;
+        document.getElementById('authForm').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'block';
+        showToast(`✅ Вход через ${provider} выполнен`, 'success');
+        localStorage.setItem('userData', JSON.stringify(userData));
+    }
+
+    function logoutUser() {
+        userData = { surname: '', name: '', patronymic: '', phone: '', avatar: '👤', password: '' };
+        updateProfileDisplay();
+        document.getElementById('authTitle').innerText = 'Вход / Регистрация';
+        document.getElementById('authForm').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        showToast('👋 Вы вышли', 'info');
+        localStorage.removeItem('userData');
+    }
+
+    // ==================== ПРОФИЛЬ ====================
+    function showProfileEditModal() {
+        showModal('Редактирование профиля', `
+            <div class="profile-edit-form">
+                <div class="form-group"><label>Фамилия</label><input type="text" id="editSurname" value="${userData.surname}"></div>
+                <div class="form-group"><label>Имя</label><input type="text" id="editName" value="${userData.name}"></div>
+                <div class="form-group"><label>Отчество</label><input type="text" id="editPatronymic" value="${userData.patronymic}"></div>
+                <div class="form-group"><label>Телефон</label><input type="tel" id="editPhone" value="${userData.phone}"></div>
+                <div class="form-group"><label>Аватар</label><select id="editAvatar">${['👤','😎','👨‍🍳','🦸','🐱'].map(a => `<option value="${a}" ${userData.avatar===a?'selected':''}>${a}</option>`).join('')}</select></div>
+                <div class="form-actions"><button class="save-btn" onclick="saveProfileChanges()">Сохранить</button><button class="cancel-btn" onclick="closeModal()">Отмена</button></div>
+            </div>
+        `);
+    }
+
+    function saveProfileChanges() {
+        userData.surname = document.getElementById('editSurname')?.value || userData.surname;
+        userData.name = document.getElementById('editName')?.value || userData.name;
+        userData.patronymic = document.getElementById('editPatronymic')?.value || userData.patronymic;
+        userData.phone = document.getElementById('editPhone')?.value || userData.phone;
+        userData.avatar = document.getElementById('editAvatar')?.value || userData.avatar;
+        updateProfileDisplay();
+        closeModal();
+        showToast('✅ Профиль обновлен', 'success');
+        localStorage.setItem('userData', JSON.stringify(userData));
+    }
+
+    function updateProfileDisplay() {
+        const fullName = [userData.surname, userData.name, userData.patronymic].filter(Boolean).join(' ') || 'Гость';
+        document.getElementById('profileName').textContent = fullName;
+        document.getElementById('profileEmail').textContent = userData.phone || 'не указан';
+        document.getElementById('profilePhone').textContent = userData.phone || '+7 (000) 000-00-00';
+        document.getElementById('profileAvatar').textContent = userData.avatar;
+    }
+
+    function updateProfileInfo() {
+        document.getElementById('profileBalance').textContent = userBalance.toLocaleString() + ' ₽';
+        document.getElementById('profileBonus').textContent = userBonus.toLocaleString();
+        checkPremium();
+    }
+
+    function checkPremium() {
+        const badge = document.getElementById('premiumBadge');
+        const profileCard = document.getElementById('profileCard');
+        if (isPremium) {
+            badge.innerHTML = '✅ Premium активен';
+            badge.classList.add('active');
+            profileCard.classList.add('premium');
+        } else {
+            badge.innerHTML = '⭐ Premium не активен (купите за 500₽)';
+            badge.classList.remove('active');
+            profileCard.classList.remove('premium');
+        }
+    }
+
+    function buyPremium(event) {
+        event.stopPropagation();
+        if (isPremium) {
+            showToast('✅ Premium уже активен', 'info');
+            return;
+        }
+        if (userBalance >= 500) {
+            userBalance -= 500;
+            isPremium = true;
+            updateProfileInfo();
+            addTransaction('Покупка Premium', -500, '✨');
+            showToast('🎉 Premium активирован! Доставка теперь быстрее', 'success');
+        } else {
+            showToast('❌ Недостаточно средств на балансе', 'error');
+        }
+    }
+
+    // ==================== ИЗБРАННОЕ ====================
+    function toggleWishlist(el, event) {
+        event.stopPropagation();
+        const card = el.closest('.product-card');
+        const productId = parseInt(card.dataset.id);
+        const index = wishlist.indexOf(productId);
+        if (index === -1) {
+            wishlist.push(productId);
+            el.classList.add('active');
+            el.innerHTML = '<i>❤️</i>';
+            showToast('❤️ Добавлено в избранное', 'info');
+        } else {
+            wishlist.splice(index, 1);
+            el.classList.remove('active');
+            el.innerHTML = '<i>🤍</i>';
+            showToast('💔 Удалено из избранного', 'info');
+        }
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        renderWishlist();
+    }
+
+    function renderWishlist() {
+        const container = document.getElementById('wishlistItems');
+        if (!container) return;
+        if (wishlist.length === 0) {
+            container.innerHTML = '<p style="color:gray;">Нет избранных товаров</p>';
+            return;
+        }
+        let html = '';
+        wishlist.forEach(id => {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                html += `<div class="wishlist-item"><span class="wishlist-item-icon">${product.icon}</span><div class="wishlist-item-info"><div class="wishlist-item-name">${product.name}</div><div class="wishlist-item-price">${product.basePrice} ₽</div></div><span class="wishlist-item-remove" onclick="removeFromWishlist(${id})">🗑️</span></div>`;
+            }
+        });
+        container.innerHTML = html;
+    }
+
+    function removeFromWishlist(id) {
+        wishlist = wishlist.filter(item => item !== id);
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        renderWishlist();
+        document.querySelectorAll('.product-card').forEach(card => {
+            if (parseInt(card.dataset.id) === id) {
+                const wishIcon = card.querySelector('.product-wishlist');
+                if (wishIcon) {
+                    wishIcon.classList.remove('active');
+                    wishIcon.innerHTML = '<i>🤍</i>';
+                }
+            }
+        });
+        showToast('💔 Удалено из избранного', 'info');
+    }
+
+    // ==================== ПРИВЯЗКА КАРТЫ ====================
+    function toggleCvv() {
+        const cvvInput = document.getElementById('cardCvv');
+        cvvInput.setAttribute('type', cvvInput.getAttribute('type') === 'password' ? 'text' : 'password');
+    }
+
+    function formatCardNumber(input) {
+        let value = input.value.replace(/\D/g, '');
+        let formatted = '';
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) formatted += ' ';
+            formatted += value[i];
+        }
+        input.value = formatted;
+        document.getElementById('cardNumberDisplay').textContent = formatted || '**** **** **** ****';
+        cardData.number = value;
+        if (value.length >= 16) {
+            cardData.lastFour = value.slice(-4);
+            document.getElementById('cardDesc').textContent = `**** **** **** ${cardData.lastFour}`;
+        }
+    }
+
+    function formatCardExpiry(input) {
+        let value = input.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            let month = parseInt(value.slice(0,2));
+            if (month > 12) month = 12;
+            let monthStr = month.toString().padStart(2,'0');
+            let year = value.slice(2,4);
+            input.value = monthStr + '/' + year;
+        } else {
+            input.value = value;
+        }
+        document.getElementById('cardExpiryDisplay').textContent = input.value || '**/**';
+        cardData.expiry = input.value;
+    }
+
+    function saveCard() {
+        const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        const cardExpiry = document.getElementById('cardExpiry').value;
+        const cardCvv = document.getElementById('cardCvv').value;
+        const cardHolder = document.getElementById('cardHolder').value.toUpperCase();
+        if (cardNumber.length < 16) { showToast('❌ Введите корректный номер карты', 'error'); return; }
+        if (cardExpiry.length < 5) { showToast('❌ Введите срок действия', 'error'); return; }
+        if (cardCvv.length < 3) { showToast('❌ Введите CVV код', 'error'); return; }
+        if (cardHolder.length < 3) { showToast('❌ Введите имя владельца', 'error'); return; }
+        cardData.holder = cardHolder;
+        document.getElementById('cardHolderDisplay').textContent = cardHolder;
+        showToast('✅ Карта успешно привязана', 'success');
+        document.getElementById('cardCvv').value = '';
+    }
+
+    // ==================== ПРОМОКОДЫ ====================
+    function applyPromoCode() {
+        const input = document.getElementById('promoInput');
+        const code = input.value.trim().toUpperCase();
+        if (promoCodes[code]) {
+            activePromo = promoCodes[code];
+            const promoDiv = document.getElementById('promoActive');
+            const promoText = document.getElementById('promoText');
+            if (code === 'WELCOME10') {
+                promoText.innerHTML = '🎉 Промокод активирован: скидка 10% на первый заказ';
+            } else if (code === 'BONUS50') {
+                promoText.innerHTML = '🎉 Промокод активирован: скидка 50 ₽';
+            } else if (code === 'CASHBACK20') {
+                promoText.innerHTML = '🎉 Промокод активирован: повышенный кэшбэк 20%';
+                cashbackRate = 20;
+                cashbackBoost = false;
+                document.getElementById('cashbackPercent').textContent = '20';
+                document.getElementById('cashbackPercentDisplay').textContent = '20%';
+            }
+            promoDiv.classList.add('active');
+            showToast('✅ Промокод активирован!', 'success');
+            input.value = '';
+        } else {
+            showToast('❌ Неверный промокод', 'error');
+        }
+    }
+
+    // ==================== ПОПОЛНЕНИЕ БАЛАНСА ====================
+    function replenishBalance(amount) {
+        userBalance += amount;
+        addTransaction('Пополнение баланса', amount, '💰');
+        updateProfileInfo();
+        showToast(`✅ Баланс пополнен на ${amount} ₽`, 'success');
+    }
+
+    // ==================== КЭШБЭК ====================
+    function activateCashback() {
+        if (cashbackRate === 20) {
+            showToast('💰 У вас уже максимальный кэшбэк 20%', 'info');
+            return;
+        }
+        cashbackBoost = !cashbackBoost;
+        cashbackRate = cashbackBoost ? 15 : 5;
+        showToast(`🔄 Кэшбэк ${cashbackBoost ? '15%' : '5%'}`, cashbackBoost ? 'success' : 'info');
+        document.getElementById('cashbackPercent').textContent = cashbackRate;
+        document.getElementById('cashbackPercentDisplay').textContent = cashbackRate + '%';
+    }
+
+    // ==================== ОТЗЫВЫ ====================
+    function initReviews() {
+        const list = document.getElementById('reviewsList');
+        list.innerHTML = customerReviews.map(review => `
+            <div class="review-card"><div class="review-header"><div class="review-avatar">${review.avatar}</div><div class="review-info"><div class="review-name">${review.name}</div><div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</div></div></div><div class="review-text">"${review.text}"</div><div class="review-order">Заказ: ${review.order}</div></div>
+        `).join('');
+    }
+
+    // ==================== АДРЕС ====================
+    function showAddressModal() {
+        showModal('Выберите адрес', `
+            <div class="address-map"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2245.123456!2d37.6176!3d55.7558!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTXCsDQ1JzIwLjgiTiAzN8KwMzcnMDQuMCJF!5e0!3m2!1sru!2sru!4v1234567890" allowfullscreen></iframe></div>
+            <div class="form-group"><label>Введите адрес вручную</label><input type="text" id="manualAddress" placeholder="Город, улица, дом" value="Москва, Тверская 15"></div>
+            <div style="display: flex; gap:10px; margin-top:15px;"><button onclick="saveAddress()" class="pay-button" style="margin:0; padding:12px;">Сохранить</button><button onclick="closeModal()" class="pay-button" style="background:var(--light); color:var(--dark); margin:0;">Отмена</button></div>
+        `);
+    }
+
+    function saveAddress() {
+        const addr = document.getElementById('manualAddress')?.value;
+        if (addr) {
+            document.getElementById('currentAddress').textContent = addr;
+            showToast('📍 Адрес сохранен', 'success');
+            closeModal();
+        }
+    }
+
+    // ==================== ЧАТ И УВЕДОМЛЕНИЯ ====================
+    function initChat() { renderChat(); }
+    
+    function renderChat() {
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+        container.innerHTML = chatMessages.map(msg => `<div class="chat-message ${msg.sender}">${msg.text}</div>`).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    function getCourierReply(userMessage) {
+        const lowerMsg = userMessage.toLowerCase();
+        
+        // Проверяем ключевые слова в сообщении пользователя
+        for (let [key, responses] of Object.entries(courierPhrases.questions)) {
+            if (lowerMsg.includes(key)) {
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        }
+        
+        // Если есть чаевые, курьер благодарит
+        if (selectedTip > 0 && (lowerMsg.includes('спасиб') || lowerMsg.includes('благодар'))) {
+            return courierPhrases.thanks[Math.floor(Math.random() * courierPhrases.thanks.length)];
+        }
+        
+        // Случайный ответ из категорий
+        const categories = ['greetings', 'timeUpdates', 'delivery', 'default'];
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        
+        if (category === 'greetings') {
+            return courierPhrases.greetings[Math.floor(Math.random() * courierPhrases.greetings.length)];
+        } else if (category === 'timeUpdates') {
+            return courierPhrases.timeUpdates[Math.floor(Math.random() * courierPhrases.timeUpdates.length)];
+        } else if (category === 'delivery') {
+            return courierPhrases.delivery[Math.floor(Math.random() * courierPhrases.delivery.length)];
+        } else {
+            return courierPhrases.default[Math.floor(Math.random() * courierPhrases.default.length)];
+        }
+    }
+    
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        chatMessages.push({ sender: 'user', text });
+        renderChat();
+        input.value = '';
+        
+        // Отправка интеллектуального ответа от курьера
+        setTimeout(() => {
+            const reply = getCourierReply(text);
+            chatMessages.push({ sender: 'courier', text: reply });
+            renderChat();
+            addNotification('Новое сообщение от курьера', reply);
+            updateCourierMood();
+        }, 1000);
+    }
+    
+    function addNotification(title, message) {
+        const id = Date.now();
+        notifications.push({ id, title, message, read: false, date: new Date().toLocaleString() });
+        notificationBadge++;
+        document.getElementById('notificationBadge').textContent = notificationBadge;
+        showToast(`🔔 ${title}`, 'info');
+    }
+    
+    function showNotifications() {
+        let html = '<div class="notifications-list">';
+        notifications.forEach((n, index) => {
+            html += `<div class="notification-item" data-id="${n.id}" ontouchstart="touchStart(event)" ontouchend="touchEnd(event, ${index})"><div class="notification-content"><strong>${n.title}</strong><br><small>${n.message}</small><br><span style="font-size:10px; color:gray;">${n.date}</span></div><div class="notification-delete" onclick="deleteNotification(${n.id})">🗑️</div></div>`;
+        });
+        html += '</div>';
+        if (notifications.length === 0) html = '<p style="text-align:center;">Нет уведомлений</p>';
+        showModal('Уведомления', html);
+    }
+    
+    function deleteNotification(id) {
+        notifications = notifications.filter(n => n.id !== id);
+        notificationBadge = notifications.length;
+        document.getElementById('notificationBadge').textContent = notificationBadge;
+        showToast('Уведомление удалено', 'info');
+        showNotifications();
+    }
+    
+    function touchStart(e) { touchStartX = e.touches[0].clientX; }
+    function touchEnd(e, index) {
+        const diff = e.changedTouches[0].clientX - touchStartX;
+        if (diff < -50) {
+            e.currentTarget.classList.add('swiped');
+            setTimeout(() => deleteNotification(notifications[index].id), 300);
+        }
+    }
+
+    // ==================== ИСТОРИЯ ЗАКАЗОВ ====================
+    function showOrdersHistory() {
+        if (orders.length === 0) {
+            showModal('История заказов', '<p style="text-align:center;">У вас пока нет заказов</p>');
+            return;
+        }
+        
+        let html = '<div style="max-height:400px; overflow-y:auto;">';
+        orders.forEach((order, idx) => {
+            let itemsHtml = '';
+            order.items.forEach(item => {
+                itemsHtml += `<div>${item.icon} ${item.name} × ${item.quantity} = ${item.totalPrice * item.quantity} ₽</div>`;
+            });
+            
+            html += `<div style="border-bottom:1px solid #eee; padding:15px; margin-bottom:10px; position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div><strong>${order.id}</strong> от ${order.date}</div>
+                    <button onclick="deleteOrder(${idx})" style="background:#ff6b6b; color:white; border:none; border-radius:20px; padding:5px 15px; cursor:pointer;">🗑️ Удалить</button>
+                </div>
+                <div>Сумма: ${order.total} ₽</div>
+                <div>Доставка: ${order.deliveryType === 'standard' ? 'обычная (60 мин)' : order.deliveryType === 'medium' ? 'ускоренная (40 мин)' : 'очень срочная (30 мин)'}</div>
+                <div style="font-size:12px; margin-top:10px;">${itemsHtml}</div>
+                ${order.rating ? `<div style="margin-top:5px;">Оценка: ${'★'.repeat(order.rating)}</div>` : ''}
+            </div>`;
+        });
+        html += '</div>';
+        
+        showModal('История заказов', html);
+        document.getElementById('ordersBadge').textContent = orders.length;
+    }
+    
+    function deleteOrder(index) {
+        if (index >= 0 && index < orders.length) {
+            orders.splice(index, 1);
+            showToast('✅ Заказ удален из истории', 'success');
+            document.getElementById('ordersBadge').textContent = orders.length;
+            showOrdersHistory(); // Обновляем отображение истории
+        }
+    }
+
+    // ==================== ТОВАРЫ ====================
+    function updateProductPrice(card) {
+        const basePrice = parseInt(card.dataset.basePrice);
+        const addonsTotal = Array.from(card.querySelectorAll('.addon-checkbox:checked')).reduce((sum, cb) => sum + parseInt(cb.dataset.price), 0);
+        const qty = parseInt(card.querySelector('.quantity-value').textContent);
+        const total = (basePrice + addonsTotal) * qty;
+        card.querySelector('.product-price').innerHTML = total + ' ₽ <small>(' + qty + ' шт.)</small>';
+        return total;
+    }
+
+    function changeQuantity(productId, delta, event) {
+        event.stopPropagation();
+        const card = event.target.closest('.product-card');
+        const qtySpan = card.querySelector('.quantity-value');
+        let qty = parseInt(qtySpan.textContent);
+        qty = Math.max(1, qty + delta);
+        qtySpan.textContent = qty;
+        updateProductPrice(card);
+    }
+
+    function addToCartWithQuantity(productId, event) {
+        event.stopPropagation();
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        const card = event.target.closest('.product-card');
+        const qty = parseInt(card.querySelector('.quantity-value').textContent);
+        const addonCheckboxes = card.querySelectorAll('.addon-checkbox:checked');
+        const selectedAddons = Array.from(addonCheckboxes).map(cb => ({ name: cb.dataset.name, price: parseInt(cb.dataset.price) }));
+        let totalPrice = (product.basePrice + selectedAddons.reduce((s, a) => s + a.price, 0)) * qty;
+        if (activePromo) {
+            if (activePromo.type === 'percent') totalPrice = totalPrice * (1 - activePromo.discount / 100);
+            else if (activePromo.type === 'fixed') totalPrice = Math.max(0, totalPrice - activePromo.discount);
+        }
+        const cartItem = {
+            id: product.id,
+            name: product.name,
+            basePrice: product.basePrice,
+            addons: selectedAddons,
+            totalPrice: Math.round(totalPrice / qty),
+            icon: product.icon,
+            quantity: qty,
+            isBonus: false
+        };
+        const existingIndex = cart.findIndex(item => item.id === product.id && JSON.stringify(item.addons) === JSON.stringify(selectedAddons));
+        if (existingIndex >= 0) cart[existingIndex].quantity += qty;
+        else cart.push(cartItem);
+        updateCartBadge();
+        showToast(`✅ ${product.name} (${qty} шт) добавлен`, 'success');
+    }
+
+    function createProductCard(product) {
+        const addonsHtml = product.addons.map(addon => `
+            <label class="addon-item"><input type="checkbox" class="addon-checkbox" data-name="${addon.name}" data-price="${addon.price}" onchange="updateProductPrice(this.closest('.product-card'))"><span>${addon.icon} ${addon.name}</span><span class="addon-price">+${addon.price} ₽</span></label>
+        `).join('');
+        const isFav = wishlist.includes(product.id) ? 'active' : '';
+        const favIcon = wishlist.includes(product.id) ? '❤️' : '🤍';
+        return `<div class="product-card" data-id="${product.id}" data-category="${product.category}" data-base-price="${product.basePrice}" onclick="showProductDetails(${product.id})">
+            <div class="product-wishlist ${isFav}" onclick="toggleWishlist(this, event)"><i>${favIcon}</i></div>
+            <div class="product-image">${product.icon}</div>
+            <div class="product-name">${product.name}</div>
+            <div class="product-description">${product.description}</div>
+            <div class="product-details">
+                <span class="product-detail">⚖️ ${product.weight}</span>
+                <span class="product-detail">🔥 ${product.calories}</span>
+                <span class="product-detail">⏱️ ${product.cookingTime}</span>
+            </div>
+            <div class="product-addons" onclick="event.stopPropagation()">
+                <div class="addons-title"><i>➕</i> Добавки</div>
+                <div class="addons-grid">${addonsHtml}</div>
+            </div>
+            <div class="product-rating"><span>⭐</span> ${product.rating} (${product.reviews})</div>
+            <div class="product-footer">
+                <div class="product-price-row">
+                    <span class="product-price">${product.basePrice} ₽</span>
+                    <div class="quantity-selector">
+                        <span class="quantity-btn" onclick="changeQuantity(${product.id}, -1, event)">−</span>
+                        <span class="quantity-value">1</span>
+                        <span class="quantity-btn" onclick="changeQuantity(${product.id}, 1, event)">+</span>
+                    </div>
+                </div>
+                <button class="product-add" onclick="addToCartWithQuantity(${product.id}, event)"><i>🛒</i> В корзину</button>
+            </div>
+            <div class="swipe-hint">👉 Свайп для добавления</div>
+        </div>`;
+    }
+
+    function initProducts() {
+        const popularDiv = document.getElementById('popularProducts');
+        const recommendedDiv = document.getElementById('recommendedProducts');
+        let popularHtml = '', recommendedHtml = '';
+        products.forEach(p => {
+            const card = createProductCard(p);
+            if (p.popular) popularHtml += card;
+            else recommendedHtml += card;
+        });
+        popularDiv.innerHTML = popularHtml;
+        recommendedDiv.innerHTML = recommendedHtml;
+    }
+
+    function scrollProducts(dir, section) {
+        const cont = document.getElementById(section === 'popular' ? 'popularProducts' : 'recommendedProducts');
+        cont.scrollLeft += dir === 'left' ? -300 : 300;
+    }
+
+    function filterByCategory(cat) {
+        document.querySelectorAll('.category-item').forEach(c => c.classList.remove('active'));
+        document.querySelector(`[data-category="${cat}"]`).classList.add('active');
+        document.querySelectorAll('.product-card').forEach(p => p.style.display = (cat === 'all' || p.dataset.category === cat) ? 'block' : 'none');
+    }
+
+    function initCategories() {
+        document.querySelectorAll('.category-item').forEach(c => c.addEventListener('click', () => filterByCategory(c.dataset.category)));
+    }
+
+    function showProductDetails(id) {
+        const product = products.find(p => p.id === id);
+        if (product) {
+            showModal(product.name, `
+                <div><strong>Описание:</strong> ${product.description}</div>
+                <div><strong>Состав:</strong> ${product.composition}</div>
+                <div><strong>Пищевая ценность:</strong> ${product.nutritional}</div>
+                <div><strong>Вес:</strong> ${product.weight}</div>
+                <div><strong>Калории:</strong> ${product.calories}</div>
+                <div><strong>Время приготовления:</strong> ${product.cookingTime}</div>
+                <div><strong>Рейтинг:</strong> ⭐ ${product.rating} (${product.reviews} отзывов)</div>
+            `);
+        }
+    }
+
+    // ==================== КОРЗИНА ====================
+    function updateCartBadge() {
+        const total = cart.reduce((s, i) => s + i.quantity, 0);
+        document.getElementById('cartBadge').textContent = total;
+        document.getElementById('cartBadge').style.display = total ? 'block' : 'none';
+    }
+
+    function showCart() {
+        if (cart.length === 0) { showToast('Корзина пуста', 'warning'); if (cartModal) { cartModal.remove(); cartModal = null; } return; }
+        if (cartModal) { cartModal.remove(); cartModal = null; }
+        let html = '<div style="max-height:400px; overflow-y:auto;">';
+        cart.forEach((item, idx) => {
+            const addonsText = item.addons.length ? ` (${item.addons.map(a => a.name).join(', ')})` : '';
+            html += `<div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee;"><span style="font-size:24px;">${item.icon}</span><div style="flex:1;"><div><strong>${item.name}</strong>${addonsText}</div><div>${item.totalPrice} ${item.isBonus ? 'бонусов' : '₽'} × ${item.quantity}</div></div><div class="cart-item-quantity"><span class="cart-quantity-btn" onclick="changeCartQuantity(${idx}, -1)">−</span><span>${item.quantity}</span><span class="cart-quantity-btn" onclick="changeCartQuantity(${idx}, 1)">+</span></div><span style="font-weight:bold;">${item.totalPrice * item.quantity} ${item.isBonus ? '🎁' : '₽'}</span><span style="color:red; cursor:pointer;" onclick="removeFromCart(${idx})">✕</span></div>`;
+        });
+        const total = cart.reduce((s, i) => s + i.totalPrice * i.quantity, 0);
+        const bonusTotal = cart.filter(i => i.isBonus).reduce((s, i) => s + i.totalPrice * i.quantity, 0);
+        const regularTotal = total - bonusTotal;
+        html += `<div style="padding:10px; font-weight:bold; text-align:right;">${regularTotal>0?`<div>К оплате: ${regularTotal} ₽</div>`:''}${bonusTotal>0?`<div>Бонусами: ${bonusTotal} 🎁</div>`:''}<div style="font-size:18px;">Итого: ${total} ${bonusTotal>0?'₽/🎁':'₽'}</div></div><button class="pay-button" onclick="proceedToCheckout()" style="margin-top:10px;">Перейти к оплате</button></div>`;
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h3>Корзина</h3><span class="modal-close" onclick="this.closest('.modal').remove(); cartModal = null;">&times;</span></div>${html}</div>`;
+        document.body.appendChild(modal);
+        cartModal = modal;
+        modal.addEventListener('click', e => { if (e.target === modal) { modal.remove(); cartModal = null; } });
+    }
+
+    function changeCartQuantity(index, delta) {
+        if (!cart[index]) return;
+        cart[index].quantity += delta;
+        if (cart[index].quantity <= 0) cart.splice(index, 1);
+        updateCartBadge();
+        showCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        updateCartBadge();
+        showCart();
+    }
+
+    function proceedToCheckout() {
+        closeModal();
+        showPaymentPage();
+    }
+
+    // ==================== БОНУСНЫЕ ТОВАРЫ ====================
+    function initBonusProducts() {
+        const grid = document.getElementById('bonusProducts');
+        grid.innerHTML = bonusProducts.map(p => `<div class="bonus-item" onclick="addBonusToCart(${p.id})"><div class="bonus-icon">${p.icon}</div><div class="bonus-info"><div class="bonus-name">${p.name}</div><div class="bonus-price">🎁 ${p.bonusPrice} бонусов</div></div></div>`).join('');
+    }
+
+    function addBonusToCart(id) {
+        const product = bonusProducts.find(b => b.id === id);
+        if (!product) return;
+        
+        // Проверяем достаточно ли бонусов с учетом уже добавленных в корзину
+        const currentBonusTotal = cart.filter(i => i.isBonus).reduce((s, i) => s + i.totalPrice * i.quantity, 0);
+        if (userBonus < currentBonusTotal + product.bonusPrice) { 
+            showToast('❌ Недостаточно бонусов', 'error'); 
+            return; 
+        }
+        
+        const cartItem = { 
+            id: product.id, 
+            name: product.name, 
+            totalPrice: product.bonusPrice, 
+            icon: product.icon, 
+            quantity: 1, 
+            isBonus: true, 
+            addons: [] 
+        };
+        
+        const existingIndex = cart.findIndex(item => item.id === product.id && item.isBonus);
+        if (existingIndex >= 0) {
+            cart[existingIndex].quantity++;
+        } else {
+            cart.push(cartItem);
+        }
+        
+        updateCartBadge();
+        showToast(`🎁 ${product.name} добавлен в корзину`, 'success');
+    }
+
+    // ==================== ОПЛАТА (С ПРОЦЕНТАМИ ЗА СРОЧНОСТЬ) ====================
+    function showPaymentPage() {
+        if (cart.length === 0) { showToast('Корзина пуста', 'warning'); return; }
+        document.getElementById('paymentPage').classList.add('active');
+        updateOrderSummary();
+    }
+
+    function closePaymentPage() {
+        document.getElementById('paymentPage').classList.remove('active');
+    }
+
+    function selectPaymentMethod(method, el) {
+        currentPaymentMethod = method;
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function updateDeliveryCost() {
+        updateOrderSummary();
+    }
+
+    function selectTip(amount, el) {
+        document.querySelectorAll('.tip-option').forEach(opt => opt.classList.remove('selected'));
+        if (amount !== null) {
+            el.classList.add('selected');
+            document.getElementById('tipCustom').value = '';
+            selectedTip = amount;
+        } else {
+            selectedTip = parseInt(document.getElementById('tipCustom').value) || 0;
+        }
+        updateOrderSummary();
+        updateCourierMood();
+    }
+
+    function saveDeliveryAddress() {
+        currentOrder.address = {
+            street: document.getElementById('deliveryStreet')?.value || 'Тверская 15',
+            apartment: document.getElementById('deliveryApartment')?.value || '',
+            entrance: document.getElementById('deliveryEntrance')?.value || '',
+            floor: document.getElementById('deliveryFloor')?.value || '',
+            code: document.getElementById('deliveryCode')?.value || ''
+        };
+    }
+
+    function getDeliveryTime(baseType) {
+        let time = { standard: 60, medium: 40, express: 30 }[baseType];
+        if (isPremium) {
+            if (baseType === 'standard') time -= 5;
+            if (baseType === 'express') time -= 5;
+        }
+        return time;
+    }
+
+    function updateOrderSummary() {
+        const summary = document.getElementById('orderSummary');
+        let regularTotal = 0, bonusTotal = 0;
+        cart.forEach(item => {
+            const itemTotal = item.totalPrice * item.quantity;
+            if (item.isBonus) bonusTotal += itemTotal;
+            else regularTotal += itemTotal;
+        });
+
+        const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+        const deliveryType = deliveryRadio ? deliveryRadio.value : 'standard';
+        let deliveryMultiplier = 1;
+        let deliveryPercent = 0;
+        if (deliveryType === 'medium') { deliveryMultiplier = 1.15; deliveryPercent = 15; }
+        else if (deliveryType === 'express') { deliveryMultiplier = 1.30; deliveryPercent = 30; }
+
+        const deliverySurcharge = Math.round(regularTotal * (deliveryMultiplier - 1));
+        const regularWithDelivery = regularTotal * deliveryMultiplier;
+        const totalToPay = regularWithDelivery + selectedTip;
+
+        const cashbackBase = regularTotal;
+        const cashback = Math.floor(cashbackBase * cashbackRate / 100);
+
+        let itemsHtml = cart.map(item => {
+            const addonsText = item.addons.length ? ` (${item.addons.map(a => a.name).join(', ')})` : '';
+            return `<div class="order-item-row"><span>${item.name}${addonsText} × ${item.quantity}</span><span>${item.totalPrice * item.quantity} ${item.isBonus ? '🎁' : '₽'}</span></div>`;
+        }).join('');
+
+        let timeNote = '';
+        if (isPremium) {
+            const baseTime = { standard: 60, medium: 40, express: 30 }[deliveryType];
+            const newTime = getDeliveryTime(deliveryType);
+            if (newTime !== baseTime) {
+                timeNote = `<div style="background:#fff3bf; padding:5px; border-radius:10px; margin-top:5px;">✨ Premium: доставка на 5 минут быстрее (${newTime} мин)</div>`;
+            } else {
+                timeNote = `<div style="background:#fff3bf; padding:5px; border-radius:10px; margin-top:5px;">✨ Premium активен (доставка ${baseTime} мин)</div>`;
+            }
+        }
+
+        summary.innerHTML = itemsHtml +
+            `<div class="order-total-row"><span>Стоимость еды:</span><span>${regularTotal} ₽</span></div>` +
+            (deliveryPercent > 0 ? `<div class="order-item-row"><span>Надбавка за срочность (${deliveryPercent}%)</span><span>+${deliverySurcharge} ₽</span></div>` : '') +
+            (selectedTip > 0 ? `<div class="order-item-row"><span>Чаевые</span><span>+${selectedTip} ₽</span></div>` : '') +
+            `<div class="order-total-row"><span>К оплате:</span><span>${Math.round(totalToPay)} ₽</span></div>` +
+            (bonusTotal > 0 ? `<div class="order-total-row"><span>Бонусами:</span><span>${bonusTotal} 🎁</span></div>` : '') +
+            `<div style="background:#e8f5e9; padding:10px; border-radius:15px; margin-top:15px;">💰 Кэшбэк ${cashback} бонусов</div>` +
+            timeNote;
+
+        document.getElementById('payButton').textContent = `Оплатить ${Math.round(totalToPay)} ₽`;
+        document.getElementById('balanceDesc').textContent = userBalance.toLocaleString() + ' ₽ доступно';
+        document.getElementById('bonusDesc').textContent = userBonus.toLocaleString() + ' бонусов';
+    }
+
+    function processPayment() {
+        saveDeliveryAddress();
+        let regularTotal = 0, bonusTotal = 0;
+        cart.forEach(item => {
+            if (item.isBonus) bonusTotal += item.totalPrice * item.quantity;
+            else regularTotal += item.totalPrice * item.quantity;
+        });
+
+        const deliveryRadio = document.querySelector('input[name="delivery"]:checked');
+        const deliveryType = deliveryRadio ? deliveryRadio.value : 'standard';
+        let deliveryMultiplier = 1;
+        let displayTime = getDeliveryTime(deliveryType);
+        if (deliveryType === 'medium') deliveryMultiplier = 1.15;
+        else if (deliveryType === 'express') deliveryMultiplier = 1.30;
+
+        const regularWithDelivery = regularTotal * deliveryMultiplier;
+        const totalToPay = regularWithDelivery + selectedTip;
+
+        // Проверка баланса и бонусов
+        if (userBalance < Math.round(totalToPay)) { 
+            showToast('❌ Недостаточно средств на балансе', 'error'); 
+            return; 
+        }
+        
+        if (userBonus < bonusTotal) { 
+            showToast('❌ Недостаточно бонусов', 'error'); 
+            return; 
+        }
+
+        // Списание средств
+        userBalance -= Math.round(totalToPay);
+        userBonus -= bonusTotal; // Бонусы списываются!
+
+        const cashbackBase = regularTotal;
+        const cashback = Math.floor(cashbackBase * cashbackRate / 100);
+        userBonus += cashback;
+
+        const order = {
+            id: '#' + Math.floor(Math.random()*10000),
+            date: new Date().toLocaleDateString('ru-RU'),
+            items: cart.map(i => ({...i})),
+            total: Math.round(totalToPay) + bonusTotal,
+            deliveryType,
+            tip: selectedTip,
+            address: {...currentOrder.address},
+            status: 'В пути',
+            rating: 0
+        };
+        orders.push(order);
+        document.getElementById('ordersBadge').textContent = orders.length;
+        updateAdminStats();
+
+        currentOrder.items = [...cart];
+        currentOrder.timeLeft = displayTime;
+        currentOrder.displayTime = displayTime;
+        currentOrder.delivered = false;
+        currentOrder.deliveryType = deliveryType;
+        currentOrder.tip = selectedTip;
+        document.getElementById('trackingBarTime').textContent = `Прибудет через ${displayTime} мин`;
+
+        addTransaction('Оплата заказа', -Math.round(totalToPay), '🛒');
+        if (bonusTotal > 0) addTransaction('Оплата бонусами', -bonusTotal, '🎁');
+        if (cashback > 0) addTransaction('Кэшбэк', cashback, '✨');
+        if (selectedTip > 0) addTransaction('Чаевые', -selectedTip, '💸');
+
+        cart = [];
+        updateCartBadge();
+        updateProfileInfo();
+        closePaymentPage();
+        showToast('✅ Заказ оплачен!', 'success');
+        document.getElementById('orderTrackingBar').style.display = 'flex';
+        updateTrackingInfo();
+        updateCourierMood();
+        startDeliveryTimer();
+    }
+
+    // ==================== ТАЙМЕР ДОСТАВКИ ====================
+    function startDeliveryTimer() {
+        const interval = setInterval(() => {
+            if (currentOrder.timeLeft > 0) {
+                currentOrder.timeLeft--;
+                updateTrackingInfo();
+            } else {
+                clearInterval(interval);
+                if (!currentOrder.delivered) {
+                    currentOrder.delivered = true;
+                    currentOrder.status = 'Доставлено';
+                    document.getElementById('orderTrackingBar').classList.add('delivered');
+                    document.getElementById('trackingStatus').textContent = 'Доставлено';
+                    document.getElementById('trackingStatus').classList.add('delivered');
+                    document.getElementById('courierMarker').style.display = 'none';
+                    document.getElementById('ratingSection').classList.add('active');
+                    addNotification('Заказ доставлен', 'Оцените доставку, пожалуйста!');
+                    document.getElementById('trackingBarTime').textContent = 'Доставлено';
+                }
+            }
+        }, 1000);
+    }
+
+    // ==================== ОТСЛЕЖИВАНИЕ ====================
+    function toggleTrackingBar(event) {
+        event.stopPropagation();
+        const bar = document.getElementById('orderTrackingBar');
+        bar.classList.toggle('collapsed');
+        event.currentTarget.textContent = bar.classList.contains('collapsed') ? '▲' : '▼';
+    }
+
+    function showTrackingPage() {
+        document.getElementById('trackingPage').classList.add('active');
+        updateTrackingInfo();
+        renderChat();
+    }
+
+    function closeTrackingPage() {
+        document.getElementById('trackingPage').classList.remove('active');
+    }
+
+    function updateTrackingInfo() {
+        document.getElementById('trackingOrderNumber').textContent = currentOrder.id;
+        document.getElementById('trackingStatusText').textContent = currentOrder.delivered ? 'Доставлено' : 'В пути';
+        document.getElementById('trackingTime').textContent = `~${currentOrder.displayTime} мин`;
+        document.getElementById('trackingDistance').textContent = currentOrder.delivered ? '0.0 км' : `${(0.9 - (60 - currentOrder.timeLeft) * 0.015).toFixed(1)} км`;
+
+        const itemsDiv = document.getElementById('trackingOrderItems');
+        if (currentOrder.items.length) {
+            let itemsHtml = '<div class="order-items-title">Состав заказа</div>';
+            currentOrder.items.forEach(item => {
+                const addonsText = item.addons.length ? `<div class="order-item-addons">➕ ${item.addons.map(a => a.name).join(', ')}</div>` : '';
+                const priceType = item.isBonus ? '🎁' : '₽';
+                itemsHtml += `<div class="order-item-detail"><div class="order-item-icon">${item.icon}</div><div class="order-item-info"><div class="order-item-name">${item.name} × ${item.quantity}</div>${addonsText}<div class="order-item-price">${item.totalPrice * item.quantity} ${priceType}</div></div></div>`;
+            });
+            itemsDiv.innerHTML = itemsHtml;
+        }
+    }
+
+    function updateCourierMood() {
+        const moodSpan = document.getElementById('courierMood');
+        const trackingMood = document.getElementById('trackingCourierMood');
+        // Настроение курьера зависит от чаевых и времени доставки
+        let mood = '😐'; // нейтральное по умолчанию
+        
+        if (selectedTip > 0) {
+            mood = '😊'; // радостное, если есть чаевые
+        } else if (currentOrder.timeLeft < 10) {
+            mood = '😅'; // спешит, если мало времени
+        } else if (currentOrder.timeLeft > 30) {
+            mood = '😎'; // расслаблен, если много времени
+        }
+        
+        if (moodSpan) moodSpan.textContent = mood;
+        if (trackingMood) trackingMood.textContent = mood;
+    }
+
+    // ==================== АДМИН-ПАНЕЛЬ ====================
+    function toggleAdminMode() {
+        const panel = document.getElementById('adminPanel');
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) {
+            renderAdminOrders();
+            updateAdminStats();
+        }
+    }
+
+    function updateAdminStats() {
+        const totalItems = orders.reduce((sum, order) => sum + order.items.reduce((s, item) => s + item.quantity, 0), 0);
+        const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+        document.getElementById('totalItemsStat').textContent = totalItems;
+        document.getElementById('totalRevenueStat').textContent = totalRevenue + ' ₽';
+    }
+
+    function renderAdminOrders() {
+        const container = document.getElementById('adminOrdersList');
+        if (orders.length === 0) { container.innerHTML = '<p>Нет заказов</p>'; return; }
+        let html = '';
+        orders.forEach((order, index) => {
+            html += `<div class="admin-order-card"><div class="admin-order-header"><span><strong>${order.id}</strong> от ${order.date}</span><span class="admin-order-status" onclick="changeOrderStatus(${index})">${order.status || 'В пути'}</span></div><div>Клиент: ${userData.name || 'Гость'}</div><div>Сумма: ${order.total} ₽</div><div>Адрес: ${order.address ? order.address.street + (order.address.apartment ? ', кв '+order.address.apartment : '') : 'не указан'}</div><div>Чаевые: ${order.tip || 0} ₽</div><div style="font-size:12px; color:gray;">Товаров: ${order.items.reduce((s, item) => s + item.quantity, 0)}</div></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function changeOrderStatus(index) {
+        const statuses = ['Готовится', 'В пути', 'Доставлен'];
+        let current = orders[index].status || 'В пути';
+        let next = statuses[(statuses.indexOf(current) + 1) % statuses.length];
+        orders[index].status = next;
+        renderAdminOrders();
+        showToast(`Статус заказа ${orders[index].id} изменён на ${next}`, 'info');
+    }
+
+    // ==================== НАВИГАЦИЯ ====================
+    function navigateTo(section) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        if (section === 'home') {
+            document.querySelector('.scrollable-content').scrollTop = 0;
+            filterByCategory('all');
+        } else if (section === 'search') {
+            document.getElementById('searchInput').focus();
+        } else if (section === 'cart') {
+            showCart();
+        } else if (section === 'profile') {
+            showProfileEditModal();
+        }
+    }
+
+    // ==================== ИСТОРИЯ ОПЕРАЦИЙ ====================
+    function initHistory() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = transactionHistory.slice(0,3).map(item => `
+            <div class="history-item"><div class="history-icon">${item.icon}</div><div class="history-details"><div class="history-title">${item.type}</div><div class="history-date">${item.date}</div></div><div class="history-amount ${item.amount>0?'positive':'negative'}">${item.amount>0?'+':''}${Math.abs(item.amount)} ₽</div></div>
+        `).join('');
+    }
+
+    function showFullHistory() {
+        let html = '<div style="max-height:400px; overflow-y:auto;">';
+        transactionHistory.forEach(item => {
+            html += `<div style="display:flex; align-items:center; gap:15px; padding:12px; border-bottom:1px solid #f0f0f0;"><div style="width:40px; height:40px; background:#f0f2f5; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:20px;">${item.icon}</div><div style="flex:1;"><div style="font-weight:600;">${item.type}</div><div style="font-size:12px; color:var(--gray);">${item.date}</div></div><div style="font-weight:700; color:${item.amount>0?'var(--success)':'var(--primary)'}">${item.amount>0?'+':''}${Math.abs(item.amount)} ₽</div></div>`;
+        });
+        html += '</div>';
+        showModal('История операций', html);
+    }
+
+    function addTransaction(type, amount, icon) {
+        transactionHistory.unshift({ type, amount, date: new Date().toLocaleDateString('ru-RU'), icon });
+        initHistory();
+    }
+
+    // ==================== КОЛЕСО УДАЧИ ====================
+    function spinWheel() {
+        if (isSpinning || wheelSpinsLeft <= 0) { showToast('❌ Недоступно', 'error'); return; }
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+        const wheel = document.getElementById('wheel');
+        const deg = 360 * 5 + Math.floor(Math.random() * 360);
+        wheel.style.transform = `rotate(${deg}deg)`;
+        setTimeout(() => {
+            isSpinning = false;
+            wheelSpinsLeft--;
+            const prizes = [500,300,200,100,50];
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            userBonus += prize;
+            addTransaction('Колесо удачи', prize, '🎡');
+            showToast(`🎉 Вы выиграли ${prize} бонусов!`, 'success');
+            updateProfileInfo();
+            if (wheelSpinsLeft <= 0) {
+                document.getElementById('spinBtn').textContent = 'Доступно завтра';
+                startWheelTimer();
+            } else {
+                document.getElementById('spinBtn').disabled = false;
+            }
+        }, 3000);
+    }
+
+    function startWheelTimer() {
+        const timer = setInterval(() => {
+            if (wheelTimer <= 0) {
+                clearInterval(timer);
+                wheelSpinsLeft = 1;
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('spinBtn').textContent = 'Крутить (1 раз в день)';
+            } else {
+                wheelTimer--;
+                const h = Math.floor(wheelTimer/3600), m = Math.floor((wheelTimer%3600)/60), s = wheelTimer%60;
+                document.getElementById('wheelTimer').textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }
+        }, 1000);
+    }
+
+    function buySpin() {
+        if (userBalance >= 50) {
+            userBalance -= 50;
+            wheelSpinsLeft++;
+            if (wheelSpinsLeft === 1) {
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('spinBtn').textContent = 'Крутить (1 раз в день)';
+            }
+            addTransaction('Покупка spin', -50, '💰');
+            updateProfileInfo();
+            showToast('✅ Spin куплен! Можете крутить ещё раз.', 'success');
+        } else {
+            showToast('❌ Недостаточно средств', 'error');
+        }
+    }
+
+    // ==================== ДОКУМЕНТАЦИЯ ====================
+    function showDocumentation() {
+        showModal('Справка по приложению', `
+            <div style="max-height:60vh; overflow-y:auto; padding-right:10px;">
+                <h4 style="color:var(--primary);">📘 MEGAFOOD</h4>
+                <p><strong>Новые возможности:</strong></p>
+                <ul style="list-style-type:none; padding-left:0;">
+                    <li>✅ Бонусы теперь списываются при оплате</li>
+                    <li>✅ Добавлены фразы курьера (более 30 вариантов)</li>
+                    <li>✅ Курьер отвечает на вопросы (где вы? сколько времени?)</li>
+                    <li>✅ Можно удалить заказ из истории</li>
+                    <li>✅ Настроение курьера зависит от чаевых и времени</li>
+                    <li>✅ Чат теперь скроллится</li>
+                    <li>✅ Регистрация с паролем, вход через Google/VK</li>
+                    <li>✅ CVV только цифры</li>
+                    <li>✅ Определение страны по номеру телефона</li>
+                    <li>✅ Расширенное описание товаров (состав, БЖУ)</li>
+                    <li>✅ Premium за 500₽ (доставка быстрее)</li>
+                    <li>✅ Покупка дополнительного spin за 50₽</li>
+                </ul>
+                <p><i>Поддержка: mikhail.fuks.2005@mail.ru</i></p>
+            </div>
+        `);
+    }
+
+    // ==================== СКАЧАТЬ APK ====================
+    document.getElementById('apkDownloadBtn').addEventListener('click', () => {
+        const content = "MEGAFOOD APK demo v4.0\nРазмер: 3.2 MB\nДата сборки: " + new Date().toLocaleString() + "\n\n✅ Бонусы списываются корректно\n✅ 30+ фраз курьера\n✅ Курьер отвечает на вопросы\n✅ Удаление заказов из истории\n✅ Настроение курьера\n✅ Чат со скроллом";
+        const blob = new Blob([content], { type: 'application/vnd.android.package-archive' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'megafood.apk';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('📲 Скачивание APK начато (v4.0)', 'success');
+    });
+
+    // ==================== ТЕКУЩЕЕ ВРЕМЯ ====================
+    function updateCurrentTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('currentTime').textContent = timeStr;
+    }
+    setInterval(updateCurrentTime, 1000);
+    updateCurrentTime();
+
+    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+    window.addEventListener('load', () => {
+        const savedUser = localStorage.getItem('userData');
+        if (savedUser) {
+            userData = JSON.parse(savedUser);
+            document.getElementById('authTitle').innerText = `Здравствуйте, ${userData.name}!`;
+            document.getElementById('authForm').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            updateProfileDisplay();
+        }
+
+        initProducts();
+        initHistory();
+        initCategories();
+        initBonusProducts();
+        initReviews();
+        updateProfileInfo();
+        updateProfileDisplay();
+        checkPremium();
+        initChat();
+        renderWishlist();
+
+        document.getElementById('locationBtn').addEventListener('click', showAddressModal);
+        document.getElementById('notificationsBtn').addEventListener('click', showNotifications);
+        document.getElementById('docBtn').addEventListener('click', showDocumentation);
+        document.getElementById('adminToggleBtn').addEventListener('click', toggleAdminMode);
+        
+        document.getElementById('searchInput').addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.product-card').forEach(p => {
+                const name = p.querySelector('.product-name').textContent.toLowerCase();
+                p.style.opacity = (name.includes(q) || q.length<2) ? '1' : '0.5';
+            });
+        });
+        
+        setInterval(checkPremium, 60000);
+        
+        // Инициализация настроения курьера
+        updateCourierMood();
+    });
+
+    window.addEventListener('click', e => {
+        if (e.target.classList.contains('modal')) {
+            e.target.remove();
+            if (cartModal === e.target) cartModal = null;
+        }
+        if (e.target.classList.contains('payment-page') && e.target === document.getElementById('paymentPage')) closePaymentPage();
+        if (e.target.classList.contains('tracking-page') && e.target === document.getElementById('trackingPage')) closeTrackingPage();
+    });
+</script>
+</body>
+</html>
