@@ -1,0 +1,1 @@
+from routes import auth, user, products, orders, wishlist, reviews, notifications, admin
